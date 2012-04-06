@@ -22,7 +22,7 @@
 #ifndef DEV_DBG_PREFIX
 #define DEV_DBG_PREFIX "EXT_INTERFACE: "
 #endif
-#define DEV_DBG(args...)	pr_info(DEV_DBG_PREFIX args)
+#define DEV_DBG(args...)	pr_debug(DEV_DBG_PREFIX args)
 #else
 #define DEV_DBG(args...)	(void)0
 #endif /* DEBUG */
@@ -36,9 +36,7 @@
 #define TVOUT_VFRMT_PAL_BDGHIN_720x576i		2
 #define TVOUT_VFRMT_PAL_M_720x480i		3
 #define TVOUT_VFRMT_PAL_N_720x480i		4
-#endif
-
-#ifdef CONFIG_FB_MSM_HDMI_COMMON
+#elif defined(CONFIG_FB_MSM_HDMI_COMMON)
 /* all video formats defined by EIA CEA 861D */
 #define HDMI_VFRMT_640x480p60_4_3	0
 #define HDMI_VFRMT_720x480p60_4_3	1
@@ -143,10 +141,10 @@ struct hdmi_disp_mode_timing_type {
 	 480, 10, 2, 33, TRUE, 25200, 60000, FALSE, TRUE}
 #define HDMI_SETTINGS_720x480p60_4_3					\
 	{HDMI_VFRMT_720x480p60_4_3,      720,  16,  62,  60,  TRUE,	\
-	 480, 9, 6, 30,  TRUE, 27030, 60000, FALSE, TRUE}
+	 480, 9, 6, 30,  TRUE, 27027, 60000, FALSE, TRUE}
 #define HDMI_SETTINGS_720x480p60_16_9					\
 	{HDMI_VFRMT_720x480p60_16_9,     720,  16,  62,  60,  TRUE,	\
-	 480, 9, 6, 30,  TRUE, 27030, 60000, FALSE, TRUE}
+	 480, 9, 6, 30,  TRUE, 27027, 60000, FALSE, TRUE}
 #define HDMI_SETTINGS_1280x720p60_16_9					\
 	{HDMI_VFRMT_1280x720p60_16_9,    1280, 110, 40,  220, FALSE,	\
 	 720, 5, 5, 20, FALSE, 74250, 60000, FALSE, TRUE}
@@ -216,10 +214,13 @@ struct external_common_state_type {
 #ifdef CONFIG_FB_MSM_HDMI_COMMON
 	boolean hdcp_active;
 	boolean hpd_feature_on;
+	boolean hdmi_sink;
 	struct hdmi_disp_mode_list_type disp_mode_list;
 	uint8 speaker_allocation_block;
 	uint16 video_latency, audio_latency;
 	uint8 audio_data_block_cnt;
+	boolean present_3d;
+	boolean present_hdcp;
 	uint32 audio_data_blocks[16];
 	int (*read_edid_block)(int block, uint8 *edid_buf);
 	int (*hpd_feature)(int on);
@@ -229,6 +230,7 @@ struct external_common_state_type {
 /* The external interface driver needs to initialize the common state. */
 extern struct external_common_state_type *external_common_state;
 extern struct mutex external_common_state_hpd_mutex;
+extern struct mutex hdmi_msm_state_mutex;
 
 #ifdef CONFIG_FB_MSM_HDMI_COMMON
 #define VFRMT_NOT_SUPPORTED(VFRMT) \

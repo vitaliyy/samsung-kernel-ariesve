@@ -145,6 +145,7 @@ struct mipi_panel_info {
 	char stream;	/* 0 or 1 */
 	char mdp_trigger;
 	char dma_trigger;
+	uint32 dsi_pclk_rate;
 };
 
 struct msm_panel_info {
@@ -164,6 +165,7 @@ struct msm_panel_info {
 	__u32 clk_min;
 	__u32 clk_max;
 	__u32 frame_count;
+	__u32 is_3d_panel;
 
 
 	struct mddi_panel_info mddi;

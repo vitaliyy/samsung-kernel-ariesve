@@ -107,19 +107,24 @@ obj-$(CONFIG_FB_MSM_MIPI_NOVATEK_VIDEO_QHD_PT) += mipi_novatek_video_qhd_pt.o
 obj-$(CONFIG_FB_MSM_MIPI_NOVATEK_CMD_QHD_PT) += mipi_novatek_cmd_qhd_pt.o
 endif
 
+
+
+
 obj-$(CONFIG_FB_MSM_LCDC_PANEL) += lcdc_panel.o
-obj-$(CONFIG_FB_MSM_LCDC_S6E63M0_WVGA) +=lcdc_s6e63m0.o
-obj-$(CONFIG_FB_MSM_LCDC_S6D16A0X22_WVGA) +=lcdc_s6d16a0x22.o
-obj-$(CONFIG_FB_MSM_LCDC_S6D04D1_WVGA) +=lcdc_s6d04d1.o
-obj-$(CONFIG_FB_MSM_LCDC_LD9040_WVGA) +=lcdc_ld9040.o
+obj-$(CONFIG_FB_MSM_LCDC_S6E63M0_WVGA) += lcdc_s6e63m0.o
+obj-$(CONFIG_FB_MSM_LCDC_S6D16A0X22_WVGA) += lcdc_s6d16a0x22.o
+obj-$(CONFIG_FB_MSM_LCDC_S6D04D1_WVGA) += lcdc_s6d04d1.o
+obj-$(CONFIG_FB_MSM_LCDC_LD9040_WVGA) += lcdc_ld9040.o
 obj-$(CONFIG_FB_MSM_LCDC_PRISM_WVGA) += lcdc_prism.o
 obj-$(CONFIG_FB_MSM_LCDC_SAMSUNG_WSVGA) += lcdc_samsung_wsvga.o
+obj-$(CONFIG_FB_MSM_LCDC_CHIMEI_WXGA) += lcdc_chimei_wxga.o
 obj-$(CONFIG_FB_MSM_LCDC_EXTERNAL_WXGA) += lcdc_external.o
 obj-$(CONFIG_FB_MSM_HDMI_SII_EXTERNAL_720P) += hdmi_sii9022.o
 obj-$(CONFIG_FB_MSM_LCDC_GORDON_VGA) += lcdc_gordon.o
 obj-$(CONFIG_FB_MSM_LCDC_WXGA) += lcdc_wxga.o
 obj-$(CONFIG_FB_MSM_LCDC_TOSHIBA_WVGA_PT) += lcdc_toshiba_wvga_pt.o
 obj-$(CONFIG_FB_MSM_LCDC_SHARP_WVGA_PT) += lcdc_sharp_wvga_pt.o
+obj-$(CONFIG_FB_MSM_LCDC_AUO_WVGA) += lcdc_auo_wvga.o
 obj-$(CONFIG_FB_MSM_LCDC_SAMSUNG_OLED_PT) += lcdc_samsung_oled_pt.o
 obj-$(CONFIG_FB_MSM_HDMI_ADV7520_PANEL) += adv7520.o
 obj-$(CONFIG_FB_MSM_LCDC_ST15_WXGA) += lcdc_st15.o
