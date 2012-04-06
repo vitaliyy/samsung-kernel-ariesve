@@ -1,4 +1,4 @@
-/* Copyright (c) 2010, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -289,6 +289,7 @@ struct ddl_decoder_data {
 	struct ddl_yuv_buffer_size  dpb_buf_size;
 	struct vidc_1080p_dec_disp_info dec_disp_info;
 	u32  progressive_only;
+	u32  output_order;
 	u32  meta_data_enable_flag;
 	u32  suffix;
 	u32  meta_data_offset;
@@ -299,6 +300,11 @@ struct ddl_decoder_data {
 	u32  dynmic_prop_change_req;
 	u32  flush_pending;
 	u32  meta_data_exists;
+	u32  idr_only_decoding;
+	u32  field_needed_for_prev_ip;
+	u32  prev_ip_frm_tag;
+	u32  cont_mode;
+	u32  reconfig_detected;
 };
 union ddl_codec_data{
 	struct ddl_codec_data_hdr  hdr;
@@ -329,7 +335,7 @@ struct ddl_context{
 	void (*interrupt_clr) (void);
 	void (*vidc_decode_seq_start[2])
 		(struct vidc_1080p_dec_seq_start_param *param);
-	void (*vidc_set_divx3_resolution[2])
+	void (*vidc_set_dec_resolution[2])
 		(u32 width, u32 height);
 	void(*vidc_decode_init_buffers[2])
 		(struct vidc_1080p_dec_init_buffers_param *param);
@@ -435,6 +441,10 @@ u32 ddl_get_input_frame_from_pool(struct ddl_client_context *ddl,
 	u8 *input_buffer_address);
 u32 ddl_insert_input_frame_to_pool(struct ddl_client_context *ddl,
 	struct ddl_frame_data_tag *ddl_input_frame);
+
+void ddl_decoder_chroma_dpb_change(struct ddl_client_context *ddl);
+u32  ddl_check_reconfig(struct ddl_client_context *ddl);
+void ddl_handle_reconfig(u32 res_change, struct ddl_client_context *ddl);
 
 #ifdef DDL_BUF_LOG
 void ddl_list_buffers(struct ddl_client_context *ddl);
