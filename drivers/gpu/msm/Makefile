@@ -1,24 +1,26 @@
 ccflags-y := -Iinclude/drm
 
-msm_kgsl-y = \
-	kgsl_drawctxt.o \
-	kgsl_cmdstream.o \
+msm_kgsl_core-y = \
 	kgsl.o \
-	kgsl_log.o \
-	kgsl_mmu.o \
-	kgsl_postmortem.o \
-	kgsl_ringbuffer.o \
 	kgsl_sharedmem.o \
-	kgsl_yamato.o \
-	kgsl_g12_drawctxt.o \
-	kgsl_g12_cmdwindow.o \
-	kgsl_g12_cmdstream.o \
-	kgsl_pwrctrl.o \
-	kgsl_g12.o
+	kgsl_pwrctrl.o
 
-msm_kgsl-$(CONFIG_MSM_KGSL_CFF_DUMP) += kgsl_cffdump.o
-msm_kgsl-$(CONFIG_MSM_KGSL_DRM) += kgsl_drm.o
+msm_kgsl_core-$(CONFIG_DEBUG_FS) += kgsl_debugfs.o
+msm_kgsl_core-$(CONFIG_MSM_KGSL_MMU) += kgsl_mmu.o
+msm_kgsl_core-$(CONFIG_MSM_KGSL_CFF_DUMP) += kgsl_cffdump.o
+msm_kgsl_core-$(CONFIG_MSM_KGSL_DRM) += kgsl_drm.o
 
-msm_kgsl-objs = $(msm_kgsl-y)
+msm_adreno-y += \
+	adreno_ringbuffer.o \
+	adreno_drawctxt.o \
+	adreno_postmortem.o \
+	adreno.o
 
-obj-$(CONFIG_MSM_KGSL) += msm_kgsl.o
+msm_adreno-$(CONFIG_DEBUG_FS) += adreno_debugfs.o
+
+msm_kgsl_core-objs = $(msm_kgsl_core-y)
+msm_adreno-objs = $(msm_adreno-y)
+
+obj-y += \
+	msm_kgsl_core.o \
+	msm_adreno.o

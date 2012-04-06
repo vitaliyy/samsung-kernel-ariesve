@@ -1,4 +1,4 @@
-/* Copyright (c) 2008-2010, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2008-2011, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -26,11 +26,23 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-#ifndef _KGSL_YAMATO_H
-#define _KGSL_YAMATO_H
+#ifndef __ADRENO_H
+#define __ADRENO_H
 
-#include "kgsl_drawctxt.h"
-#include "kgsl_ringbuffer.h"
+#include "adreno_drawctxt.h"
+#include "adreno_ringbuffer.h"
+
+#define DEVICE_3D_NAME "kgsl-3d"
+#define DEVICE_3D0_NAME "kgsl-3d0"
+
+/* Flags to control command packet settings */
+#define KGSL_CMD_FLAGS_PMODE           0x00000001
+#define KGSL_CMD_FLAGS_NO_TS_CMP       0x00000002
+#define KGSL_CMD_FLAGS_NOT_KERNEL_CMD  0x00000004
+
+/* Command identifiers */
+#define KGSL_CONTEXT_TO_MEM_IDENTIFIER 0xDEADBEEF
+#define KGSL_CMD_IDENTIFIER            0xFEEDFACE
 
 struct kgsl_yamato_device {
 	struct kgsl_device dev;    /* Must be first field in this struct */
@@ -45,19 +57,19 @@ struct kgsl_yamato_device {
 };
 
 
-irqreturn_t kgsl_yamato_isr(int irq, void *data);
-
-int __init kgsl_yamato_init(struct kgsl_device *device);
-int __init kgsl_yamato_init_pwrctrl(struct kgsl_device *device);
-
-int kgsl_yamato_close(struct kgsl_device *device);
-
 int kgsl_yamato_idle(struct kgsl_device *device, unsigned int timeout);
-int kgsl_yamato_regread(struct kgsl_device *device, unsigned int offsetwords,
+void kgsl_yamato_regread(struct kgsl_device *device, unsigned int offsetwords,
 				unsigned int *value);
-int kgsl_yamato_regwrite(struct kgsl_device *device, unsigned int offsetwords,
+void kgsl_yamato_regwrite(struct kgsl_device *device, unsigned int offsetwords,
 				unsigned int value);
-struct kgsl_device *kgsl_get_yamato_generic_device(void);
-int kgsl_yamato_getfunctable(struct kgsl_functable *ftbl);
+void kgsl_yamato_regread_isr(struct kgsl_device *device,
+			     unsigned int offsetwords,
+			     unsigned int *value);
+void kgsl_yamato_regwrite_isr(struct kgsl_device *device,
+			      unsigned int offsetwords,
+			      unsigned int value);
 
-#endif /*_KGSL_YAMATO_H */
+uint8_t *kgsl_sharedmem_convertaddr(struct kgsl_device *device,
+	unsigned int pt_base, unsigned int gpuaddr, unsigned int *size);
+
+#endif /* __ADRENO_H */

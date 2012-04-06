@@ -62,10 +62,6 @@
 				      0, pagetable->tlbflushfilter.size)
 
 
-#ifdef CONFIG_MSM_KGSL_MMU
-extern unsigned int kgsl_cache_enable;
-#endif
-
 struct kgsl_device;
 
 struct kgsl_ptstats {
@@ -96,6 +92,14 @@ struct kgsl_pagetable {
 	/* Maintain filter to manage tlb flushing */
 	struct kgsl_tlbflushfilter tlbflushfilter;
 	unsigned int tlb_flags;
+	struct kobject *kobj;
+
+	struct {
+		unsigned int entries;
+		unsigned int mapped;
+		unsigned int max_mapped;
+		unsigned int max_entries;
+	} stats;
 };
 
 struct kgsl_mmu_reg {
@@ -111,6 +115,7 @@ struct kgsl_mmu_reg {
 	uint32_t interrupt_mask;
 	uint32_t interrupt_status;
 	uint32_t interrupt_clear;
+	uint32_t axi_error;
 };
 
 struct kgsl_mmu {
@@ -120,42 +125,145 @@ struct kgsl_mmu {
 	unsigned int     config;
 	uint32_t        mpu_base;
 	int              mpu_range;
-	uint32_t        va_base;
-	unsigned int     va_range;
 	struct kgsl_memdesc    dummyspace;
+	struct kgsl_mmu_reg    reg;
 	/* current page table object being used by device mmu */
 	struct kgsl_pagetable  *defaultpagetable;
 	struct kgsl_pagetable  *hwpagetable;
 };
 
+struct kgsl_ptpool_chunk {
+	size_t size;
+	unsigned int count;
+	int dynamic;
 
-static inline int
-kgsl_mmu_isenabled(struct kgsl_mmu *mmu)
-{
-	return ((mmu)->flags & KGSL_FLAGS_STARTED) ? 1 : 0;
-}
+	void *data;
+	unsigned int phys;
 
+	unsigned long *bitmap;
+	struct list_head list;
+};
+
+struct kgsl_ptpool {
+	size_t ptsize;
+	struct mutex lock;
+	struct list_head list;
+	int entries;
+	int static_entries;
+	int chunks;
+};
+
+struct kgsl_pagetable *kgsl_mmu_getpagetable(unsigned long name);
+
+#ifdef CONFIG_MSM_KGSL_MMU
 
 int kgsl_mmu_init(struct kgsl_device *device);
-
 int kgsl_mmu_start(struct kgsl_device *device);
-
 int kgsl_mmu_stop(struct kgsl_device *device);
 
 int kgsl_mmu_close(struct kgsl_device *device);
 
-struct kgsl_pagetable *kgsl_mmu_getpagetable(struct kgsl_mmu *mmu,
-					     unsigned long name);
-
-void kgsl_mmu_putpagetable(struct kgsl_pagetable *pagetable);
-
 int kgsl_mmu_setstate(struct kgsl_device *device,
-			struct kgsl_pagetable *pagetable);
+		     struct kgsl_pagetable *pagetable);
+
+int kgsl_mmu_map(struct kgsl_pagetable *pagetable,
+		struct kgsl_memdesc *memdesc,
+		unsigned int protflags);
+int kgsl_mmu_map_global(struct kgsl_pagetable *pagetable,
+		       struct kgsl_memdesc *memdesc, unsigned int protflags);
+int kgsl_mmu_unmap(struct kgsl_pagetable *pagetable,
+		   struct kgsl_memdesc *memdesc);
+void kgsl_ptpool_destroy(struct kgsl_ptpool *pool);
+int kgsl_ptpool_init(struct kgsl_ptpool *pool, int ptsize, int entries);
+void kgsl_mh_intrcallback(struct kgsl_device *device);
+void kgsl_mmu_putpagetable(struct kgsl_pagetable *pagetable);
+unsigned int kgsl_virtaddr_to_physaddr(void *virtaddr);
+
+static inline int kgsl_mmu_enabled(void)
+{
+	return 1;
+}
+
+#else
+
+static inline int kgsl_mmu_enabled(void)
+{
+	return 0;
+}
+
+static inline int kgsl_mmu_init(struct kgsl_device *device)
+{
+	return 0;
+}
+
+static inline int kgsl_mmu_start(struct kgsl_device *device)
+{
+	return 0;
+}
+
+static inline int kgsl_mmu_stop(struct kgsl_device *device)
+{
+	return 0;
+}
+
+static inline int kgsl_mmu_close(struct kgsl_device *device)
+{
+	return 0;
+}
+
+static inline int kgsl_mmu_setstate(struct kgsl_device *device,
+				   struct kgsl_pagetable *pagetable)
+{
+	return 0;
+}
+
+static inline int kgsl_mmu_map(struct kgsl_pagetable *pagetable,
+		 struct kgsl_memdesc *memdesc,
+		 unsigned int protflags)
+{
+	memdesc->gpuaddr = memdesc->physaddr;
+	return 0;
+}
+
+static inline int kgsl_mmu_unmap(struct kgsl_pagetable *pagetable,
+				 struct kgsl_memdesc *memdesc)
+{
+	return 0;
+}
+
+static inline int kgsl_ptpool_init(struct kgsl_ptpool *pool, int ptsize,
+				    int entries)
+{
+	return 0;
+}
+
+static inline int kgsl_mmu_map_global(struct kgsl_pagetable *pagetable,
+       struct kgsl_memdesc *memdesc, unsigned int protflags)
+{
+	/* gpuaddr is the same that gets passed in */
+	return 0;
+}
+
+static inline void kgsl_ptpool_destroy(struct kgsl_ptpool *pool) { }
+
+static inline void kgsl_mh_intrcallback(struct kgsl_device *device) { }
+
+static inline void kgsl_mmu_putpagetable(struct kgsl_pagetable *pagetable) { }
+
+static inline unsigned int kgsl_virtaddr_to_physaddr(void *virtaddr)
+{
+	return 0;
+}
+#endif
 
 static inline unsigned int kgsl_pt_get_flags(struct kgsl_pagetable *pt,
-					     enum kgsl_deviceid id)
+					    enum kgsl_deviceid id)
 {
 	unsigned int result = 0;
+
+	if (pt == NULL)
+		return 0;
+
 	spin_lock(&pt->lock);
 	if (pt->tlb_flags && (1<<id)) {
 		result = KGSL_MMUFLAGS_TLBFLUSH;
@@ -165,44 +273,7 @@ static inline unsigned int kgsl_pt_get_flags(struct kgsl_pagetable *pt,
 	return result;
 }
 
-
-#ifdef CONFIG_MSM_KGSL_MMU
-int kgsl_mmu_map(struct kgsl_pagetable *pagetable,
-		 unsigned int address,
-		 int range,
-		 unsigned int protflags,
-		 unsigned int *gpuaddr,
-		 unsigned int flags);
-
-int kgsl_mmu_unmap(struct kgsl_pagetable *pagetable,
-					unsigned int gpuaddr, int range);
-
-unsigned int kgsl_virtaddr_to_physaddr(unsigned int virtaddr);
-#else
-static inline int kgsl_mmu_map(struct kgsl_pagetable *pagetable,
-		 unsigned int address,
-		 int range,
-		 unsigned int protflags,
-		 unsigned int *gpuaddr,
-		 unsigned int flags)
-{
-	*gpuaddr = address;
-	return 0;
-}
-
-static inline int kgsl_mmu_unmap(struct kgsl_pagetable *pagetable,
-					unsigned int gpuaddr, int range)
-{ return 0; }
-
-#endif
-
-int kgsl_mmu_map_global(struct kgsl_pagetable *pagetable,
-			struct kgsl_memdesc *memdesc, unsigned int protflags,
-			unsigned int flags);
-
 int kgsl_mmu_querystats(struct kgsl_pagetable *pagetable,
 			struct kgsl_ptstats *stats);
-
-void kgsl_mh_intrcallback(struct kgsl_device *device);
 
 #endif /* __GSL_MMU_H */
