@@ -103,7 +103,7 @@
 #define DRIVER_NAME		 "usb_mtp_gadget"
 
 
-#if 1
+#ifdef CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE
 /* soonyong.cho : Below name is used for samsung composite framework. */
 #include <linux/usb/android_composite.h>
 static const char longname[] = 	"mtp";
@@ -1138,7 +1138,7 @@ static int mtpg_function_setup(struct usb_function *f,
 
 printk("mtpg_function_setup ENTRY");
 
-#if 1
+#ifdef CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE
 /* soonyong.cho :  do nothing if we are disabled */
 	if (dev->function.disabled)
 		return value;

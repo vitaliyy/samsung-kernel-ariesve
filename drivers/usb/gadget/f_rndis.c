@@ -90,7 +90,7 @@
 #  define CSY_DBG(fmt, args...) do { } while (0)
 #endif /* CSY_DEBUG */
 
-#if 1
+#ifdef CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE
 /*#define CSY_SAMSUNG_COMMAND_LOG */
 /*#define CSY_SAMSUNG_NO_IAD */
 
@@ -515,8 +515,7 @@ rndis_setup(struct usb_function *f, const struct usb_ctrlrequest *ctrl)
 	case ((USB_DIR_OUT | USB_TYPE_CLASS | USB_RECIP_INTERFACE) << 8)
 			| USB_CDC_SEND_ENCAPSULATED_COMMAND:
 		CSY_DBG("USB_CDC_SEND_ENCAPSULATED_COMMAND++\n");
-		if (w_length > req->length || w_value
-				|| w_index != rndis->ctrl_id)
+		if (w_value || w_index != rndis->ctrl_id)
 			goto invalid;
 		/* read the request; process it later */
 		value = w_length;
@@ -868,6 +867,8 @@ rndis_unbind(struct usb_configuration *c, struct usb_function *f)
 
 	rndis_deregister(rndis->config);
 	rndis_exit();
+
+	rndis_string_defs[0].id = 0;
 
 	if (gadget_is_dualspeed(c->cdev->gadget))
 		usb_free_descriptors(f->hs_descriptors);
