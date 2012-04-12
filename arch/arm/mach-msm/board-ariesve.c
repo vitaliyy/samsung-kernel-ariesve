@@ -111,6 +111,7 @@
 #define GPIO_WLAN_WAKES_MSM_REV05	111 //WLAN_HOST_WAKE
 #define GPIO_WLAN_WAKES_MSM_REV06	111
 #endif
+#endif
 
 //sc47.yun start
 #define GPIO_WLAN_RESET			127
@@ -133,8 +134,6 @@
 #define GPIO_WLAN_LEVEL_HIGH			1
 #define GPIO_WLAN_LEVEL_NONE			2
 //sc47.yun end
-
-#endif
 
 #define WLAN_EN_GPIO		144 //WLAN_BT_EN
 #define WLAN_RESET          127 //Reset
@@ -5453,21 +5452,6 @@ static struct platform_device msm_bt_power_device = {
 //sc47.yun .id     = -1
 };
 
-static unsigned bt_config_default[] = {
-    GPIO_CFG(GPIO_BT_WAKE,       0, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),    /* WAKE */
-    GPIO_CFG(GPIO_BT_UART_RTS,   1, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),    /* RFR */
-    GPIO_CFG(GPIO_BT_UART_CTS,   1, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),    /* CTS */
-    GPIO_CFG(GPIO_BT_UART_RXD,   1, GPIO_CFG_INPUT,  GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),    /* Rx */
-    GPIO_CFG(GPIO_BT_UART_TXD,   1, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),    /* Tx */
-    GPIO_CFG(GPIO_BT_PCM_DOUT,   1, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),    /* PCM_DOUT */
-    GPIO_CFG(GPIO_BT_PCM_DIN,    1, GPIO_CFG_INPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA),    /* PCM_DIN */
-    GPIO_CFG(GPIO_BT_PCM_SYNC,   1, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),    /* PCM_SYNC */
-    GPIO_CFG(GPIO_BT_PCM_CLK,    1, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),    /* PCM_CLK */
-    GPIO_CFG(GPIO_BT_HOST_WAKE,  0, GPIO_CFG_INPUT,  GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),    /* HOST_WAKE */    
-    GPIO_CFG(GPIO_BT_WLAN_REG_ON,0, GPIO_CFG_OUTPUT,  GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),    /* BT_WLAN_REG_ON */
-    GPIO_CFG(GPIO_BT_RESET,      0, GPIO_CFG_OUTPUT,  GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),    /* BT_RESET */
-};
-
 static unsigned bt_config_power_on[] = {
     GPIO_CFG(GPIO_BT_WAKE,     0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),    /* WAKE */
     GPIO_CFG(GPIO_BT_UART_RTS, 1, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),    /* RFR */
@@ -5545,7 +5529,7 @@ static int bluetooth_gpio_init(void)
 {
     pr_info("bluetooth_gpio_init on system_rev:%d\n", system_rev);
 
-    config_gpio_table(bt_config_default, ARRAY_SIZE(bt_config_default));
+    config_gpio_table(bt_config_power_on, ARRAY_SIZE(bt_config_power_on));
     return 0;
 }
 //sc47.yun
@@ -6893,6 +6877,105 @@ void wlan_setup_power(int on, int flag)
 }
 EXPORT_SYMBOL (wlan_setup_power);
 
+#define WLAN_STATIC_BUF	// this feature for using static buffer on wifi driver /Kernel/drivers/net/wireless/bcm4330
+#ifdef WLAN_STATIC_BUF
+
+#define PREALLOC_WLAN_SEC_NUM		4
+#define PREALLOC_WLAN_BUF_NUM		160
+#define PREALLOC_WLAN_SECTION_HEADER	24
+
+
+#define WLAN_SECTION_SIZE_0	(PREALLOC_WLAN_BUF_NUM * 128)
+#define WLAN_SECTION_SIZE_1	(PREALLOC_WLAN_BUF_NUM * 128)
+#define WLAN_SECTION_SIZE_2	(PREALLOC_WLAN_BUF_NUM * 512)
+#define WLAN_SECTION_SIZE_3	(PREALLOC_WLAN_BUF_NUM * 1024)
+
+#define WLAN_SKB_BUF_NUM	17
+
+static struct sk_buff *wlan_static_skb[WLAN_SKB_BUF_NUM];
+
+#endif /* WLAN_STATIC_BUF */
+
+#ifdef WLAN_STATIC_BUF
+
+struct wifi_mem_prealloc {
+	void *mem_ptr;
+	unsigned long size;
+};
+
+static struct wifi_mem_prealloc wifi_mem_array[PREALLOC_WLAN_SEC_NUM] = {
+	{NULL, (WLAN_SECTION_SIZE_0 + PREALLOC_WLAN_SECTION_HEADER)},
+	{NULL, (WLAN_SECTION_SIZE_1 + PREALLOC_WLAN_SECTION_HEADER)},
+	{NULL, (WLAN_SECTION_SIZE_2 + PREALLOC_WLAN_SECTION_HEADER)},
+	{NULL, (WLAN_SECTION_SIZE_3 + PREALLOC_WLAN_SECTION_HEADER)}
+};
+
+void *wlan_mem_prealloc(int section, unsigned long size)
+{
+	if (section == PREALLOC_WLAN_SEC_NUM)
+		return wlan_static_skb;
+
+	if ((section < 0) || (section > PREALLOC_WLAN_SEC_NUM))
+		return NULL;
+
+	if (wifi_mem_array[section].size < size)
+		return NULL;
+
+	return wifi_mem_array[section].mem_ptr;
+}
+EXPORT_SYMBOL(wlan_mem_prealloc);
+
+#define DHD_SKB_HDRSIZE 		336
+#define DHD_SKB_1PAGE_BUFSIZE	((PAGE_SIZE*1)-DHD_SKB_HDRSIZE)
+#define DHD_SKB_2PAGE_BUFSIZE	((PAGE_SIZE*2)-DHD_SKB_HDRSIZE)
+#define DHD_SKB_4PAGE_BUFSIZE	((PAGE_SIZE*4)-DHD_SKB_HDRSIZE)
+
+static int init_wifi_mem(void)
+{
+	int i;
+	int j;
+
+	for (i = 0; i < 8; i++) {
+		wlan_static_skb[i] = dev_alloc_skb(DHD_SKB_1PAGE_BUFSIZE);
+		if (!wlan_static_skb[i])
+			goto err_skb_alloc;
+	}
+
+	for (; i < 16; i++) {
+		wlan_static_skb[i] = dev_alloc_skb(DHD_SKB_2PAGE_BUFSIZE);
+		if (!wlan_static_skb[i])
+			goto err_skb_alloc;
+	}
+
+	wlan_static_skb[i] = dev_alloc_skb(DHD_SKB_4PAGE_BUFSIZE);
+	if (!wlan_static_skb[i])
+		goto err_skb_alloc;
+
+	for (i = 0 ; i < PREALLOC_WLAN_SEC_NUM ; i++) {
+		wifi_mem_array[i].mem_ptr =
+				kmalloc(wifi_mem_array[i].size, GFP_KERNEL);
+		if (!wifi_mem_array[i].mem_ptr)
+			goto err_mem_alloc;
+	}
+	printk("%s: WIFI MEM Allocated\n", __FUNCTION__);
+	return 0;
+
+ err_mem_alloc:
+	pr_err("Failed to mem_alloc for WLAN\n");
+	for (j = 0 ; j < i ; j++)
+		kfree(wifi_mem_array[j].mem_ptr);
+
+	i = WLAN_SKB_BUF_NUM;
+
+ err_skb_alloc:
+	pr_err("Failed to skb_alloc for WLAN\n");
+	for (j = 0 ; j < i ; j++)
+		dev_kfree_skb(wlan_static_skb[j]);
+
+	return -ENOMEM;
+}
+#endif /* WLAN_STATIC_BUF */
+
 static void __init msm7x30_init_mmc(void)
 {
 	vreg_s3 = vreg_get(NULL, "s3");
@@ -7695,8 +7778,7 @@ static void __init msm7x30_init(void)
 #endif
 
 	bt_power_init();
-	bluetooth_gpio_init();
-   
+
 #ifdef CONFIG_I2C_SSBI
 	msm_device_ssbi6.dev.platform_data = &msm_i2c_ssbi6_pdata;
 	msm_device_ssbi7.dev.platform_data = &msm_i2c_ssbi7_pdata;
@@ -7752,6 +7834,9 @@ static void __init msm7x30_init(void)
 	boot_reason = *(unsigned int *)
 		(smem_get_entry(SMEM_POWER_ON_STATUS_INFO, &smem_size));
 	printk(KERN_NOTICE "Boot Reason = 0x%02x\n", boot_reason);
+#ifdef WLAN_STATIC_BUF
+	init_wifi_mem();
+#endif
 }
 
 static unsigned pmem_sf_size = MSM_PMEM_SF_SIZE;
