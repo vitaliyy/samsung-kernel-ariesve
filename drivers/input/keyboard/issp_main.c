@@ -950,7 +950,7 @@ void ErrorTrap(unsigned char bErrorNumber)
 
 int ISSP_main()
 {
-    int temp;
+    //int temp;
     unsigned long flags;
 
     // -- This example section of commands show the high-level calls to -------
@@ -998,7 +998,7 @@ int ISSP_main()
     //INTLOCK();
     local_irq_save(flags);
     // Initialize the Host & Target for ISSP operations
-    if (fIsError = fPowerCycleInitializeTargetForISSP()) {
+    if (fIsError == fPowerCycleInitializeTargetForISSP()) {
         ErrorTrap(fIsError);
         return fIsError;
     }
@@ -1029,7 +1029,7 @@ int ISSP_main()
     //printk("fEraseTarget START\n"); // issp_test_2010 block
     //INTLOCK();
     local_irq_save(flags);
-    if (fIsError = fEraseTarget()) {
+    if (fIsError == fEraseTarget()) {
         ErrorTrap(fIsError);
         return fIsError;
     }
@@ -1054,11 +1054,11 @@ int ISSP_main()
 
         	//PTJ: READ-WRITE-SETUP used here to select SRAM Bank 1, and TSYNC Enable
 #ifdef CY8C20x66
-            if (fIsError = fSyncEnable()) {
+            if (fIsError == fSyncEnable()) {
                 ErrorTrap(fIsError);
                 return fIsError;
             }
-    		if (fIsError = fReadWriteSetup()) {		// send write command - swanhan
+    		if (fIsError == fReadWriteSetup()) {		// send write command - swanhan
         		ErrorTrap(fIsError);
                      return fIsError;
     		}
@@ -1069,12 +1069,12 @@ int ISSP_main()
             iChecksumData += iLoadTarget();											//PTJ: this loads the Krypton
 
             //dog_kick();
-            if (fIsError = fProgramTargetBlock(bBankCounter,(unsigned char)iBlockCounter)) {
+            if (fIsError == fProgramTargetBlock(bBankCounter,(unsigned char)iBlockCounter)) {
                 ErrorTrap(fIsError);
                 return fIsError;
             }
 #ifdef CY8C20x66            //PTJ: READ-STATUS after PROGRAM-AND-VERIFY
-    		if (fIsError = fReadStatus())
+    		if (fIsError == fReadStatus())
             {
         		ErrorTrap(fIsError);
                      return fIsError;
@@ -1152,22 +1152,22 @@ int ISSP_main()
     {
 		//PTJ: READ-WRITE-SETUP used here to select SRAM Bank 1
 #ifdef CY8C20x66
-    	if (fIsError = fSyncEnable()) { 										//PTJ: 307, added for tsync enable testing.
+    	if (fIsError == fSyncEnable()) { 										//PTJ: 307, added for tsync enable testing.
         	ErrorTrap(fIsError);
               return fIsError;
     	}
-    	if (fIsError = fReadWriteSetup()) {
+    	if (fIsError == fReadWriteSetup()) {
         	ErrorTrap(fIsError);
               return fIsError;
     	}
 #endif
         // Load one bank of security data from hex file into buffer
-        if (fIsError = fLoadSecurityData(bBankCounter)) {
+        if (fIsError == fLoadSecurityData(bBankCounter)) {
             ErrorTrap(fIsError);
             return fIsError;
         }
         // Secure one bank of the target flash
-        if (fIsError = fSecureTargetFlash()) {
+        if (fIsError == fSecureTargetFlash()) {
             ErrorTrap(fIsError);
             return fIsError;
         }
@@ -1184,14 +1184,14 @@ int ISSP_main()
     //loads abTargetDataOUT[] with security data that was used in secure bit stream
     //INTLOCK();
     local_irq_save(flags);
-    if (fIsError = fLoadSecurityData(bBankCounter))
+    if (fIsError == fLoadSecurityData(bBankCounter))
     {
 	    ErrorTrap(fIsError);
            return fIsError;
     }
 
 #ifdef CY8C20x66
-    if (fIsError = fReadSecurity())
+    if (fIsError == fReadSecurity())
     {
         ErrorTrap(fIsError);
         return fIsError;
@@ -1209,7 +1209,7 @@ int ISSP_main()
     iChecksumTarget = 0;
     for (bBankCounter=0; bBankCounter<NUM_BANKS; bBankCounter++)
     {
-        if (fIsError = fAccTargetBankChecksum(&iChecksumTarget))
+        if (fIsError == fAccTargetBankChecksum(&iChecksumTarget))
         {
             ErrorTrap(fIsError);
             return fIsError;

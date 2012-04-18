@@ -333,7 +333,7 @@ signed char fXRESInitializeTargetForISSP(void)
 // ============================================================================
 signed char fPowerCycleInitializeTargetForISSP(void)
 {
-    unsigned char n;
+    //unsigned char n;
 
     // Set all pins to highZ to avoid back powering the PSoC through the GPIO
     // protection diodes.
@@ -353,7 +353,7 @@ signed char fPowerCycleInitializeTargetForISSP(void)
     // transition on SDAT. SCLK is not needed this time.
     SetSCLKHiZ();
 //    printk(KERN_DEBUG "fDetectHiLoTransition\n");
-    if (fIsError = fDetectHiLoTransition()) {
+    if (fIsError == fDetectHiLoTransition()) {
         return(INIT_ERROR);
     }
 
@@ -372,7 +372,7 @@ signed char fPowerCycleInitializeTargetForISSP(void)
 	SendVector(wait_and_poll_end, num_bits_wait_and_poll_end);		//PTJ: rev308, added to match spec
 //    printk("SendVector(id_setup_1)\n",0,0,0);
     SendVector(id_setup_1, num_bits_id_setup_1);
-    if (fIsError = fDetectHiLoTransition()) {
+    if (fIsError == fDetectHiLoTransition()) {
         return(INIT_ERROR);
     }
     SendVector(wait_and_poll_end, num_bits_wait_and_poll_end);
@@ -395,7 +395,7 @@ signed char fVerifySiliconID(void)
     SendVector(id_setup_2, num_bits_id_setup_2);
     printk("fVerifySiliconID: SendVector id_stup2 END\n");
     
-    if (fIsError = fDetectHiLoTransition()) {
+    if (fIsError == fDetectHiLoTransition()) {
         printk("fVerifySiliconID(): fDetectHiLoTransition Error\n");
         return(SiID_ERROR);
     }
@@ -609,7 +609,7 @@ signed char fSyncDisable(void)
 signed char fEraseTarget(void)
 {
     SendVector(erase, num_bits_erase);
-    if (fIsError = fDetectHiLoTransition()) {
+    if (fIsError == fDetectHiLoTransition()) {
 //        TX8SW_CPutString("\r\n fDetectHiLoTransition");
         //printk("\r\n fDetectHiLoTransition\n"); // issp_test_2010 block
         return(ERASE_ERROR);
@@ -713,7 +713,7 @@ signed char fProgramTargetBlock(unsigned char bBankNumber, unsigned char bBlockN
     // Send the program-block vector.
     SendVector(program_and_verify, num_bits_program_and_verify);		//PTJ: PROGRAM-AND-VERIFY
     // wait for acknowledge from target.
-    if (fIsError = fDetectHiLoTransition()) {
+    if (fIsError == fDetectHiLoTransition()) {
         return(BLOCK_ERROR);
     }
     // Send the Wait-For-Poll-End vector
@@ -737,7 +737,7 @@ signed char fAccTargetBankChecksum(unsigned int* pAcc)
     unsigned int wCheckSumData;
 
     SendVector(checksum_setup, num_bits_checksum_setup); 		//PTJ:CHECKSUM-SETUP, it is taking 100ms > time > 200ms to complete the checksum
-    if (fIsError = fDetectHiLoTransition())
+    if (fIsError == fDetectHiLoTransition())
     {                   //100ms is default
         return(VERIFY_ERROR);
 	}
@@ -814,7 +814,7 @@ signed char fVerifySetup(unsigned char bBankNumber, unsigned char bBlockNumber)
     SendVector(tsync_disable, num_bits_tsync_disable);	//PTJ:
 
     SendVector(verify_setup, num_bits_my_verify_setup);		//PTJ:
-    if (fIsError = fDetectHiLoTransition()) {
+    if (fIsError == fDetectHiLoTransition()) {
         return(BLOCK_ERROR);
     }
     SendVector(wait_and_poll_end, num_bits_wait_and_poll_end);
@@ -895,7 +895,7 @@ signed char fVerifyTargetBlock(unsigned char bBankNumber, unsigned char bBlockNu
     SendByte(set_block_number_end, 3);
 
     SendVector(verify_setup_v, num_bits_verify_setup);
-    if (fIsError = fDetectHiLoTransition()) {
+    if (fIsError == fDetectHiLoTransition()) {
         return(BLOCK_ERROR);
     }
     SendVector(wait_and_poll_end, num_bits_wait_and_poll_end);
@@ -968,7 +968,7 @@ unsigned char bTemp;
     }
 
     SendVector(secure, num_bits_secure);	//PTJ:
-    if (fIsError = fDetectHiLoTransition()) {
+    if (fIsError == fDetectHiLoTransition()) {
         return(SECURITY_ERROR);
     }
     SendVector(wait_and_poll_end, num_bits_wait_and_poll_end);
