@@ -111,7 +111,6 @@
 #define GPIO_WLAN_WAKES_MSM_REV05	111 //WLAN_HOST_WAKE
 #define GPIO_WLAN_WAKES_MSM_REV06	111
 #endif
-#endif
 
 //sc47.yun start
 #define GPIO_WLAN_RESET			127
@@ -134,6 +133,8 @@
 #define GPIO_WLAN_LEVEL_HIGH			1
 #define GPIO_WLAN_LEVEL_NONE			2
 //sc47.yun end
+
+#endif
 
 #define WLAN_EN_GPIO		144 //WLAN_BT_EN
 #define WLAN_RESET          127 //Reset
@@ -1617,25 +1618,25 @@ static struct platform_device amp_i2c_gpio_device = {
 #ifdef CONFIG_SENSORS_YDA165
 static struct snd_set_ampgain init_ampgain[] = {
 	[0] = {
-		.in1_gain = 2,
-		.in2_gain = 2,
-		.hp_att = 26,
+		.in1_gain = 4,
+		.in2_gain = 4,
+		.hp_att = 31,
 		.hp_gainup = 0,
 		.sp_att = 31,
 		.sp_gainup = 0,
 	},
 	[1] = { /* [HSS] headset_call, speaker_call */
-		.in1_gain = 2,
+		.in1_gain = 5,
 		.in2_gain = 2,
-		.hp_att = 14,
+		.hp_att = 31,
 		.hp_gainup = 0,
 		.sp_att = 31,
 		.sp_gainup = 0,
 	},
 	[2] = { /* [HSS] headset_speaker */
 		.in1_gain = 5,
-		.in2_gain = 2,
-		.hp_att = 13,
+		.in2_gain = 0,
+		.hp_att = 5,
 		.hp_gainup = 0,
 		.sp_att = 31,
 		.sp_gainup = 2,
@@ -4955,7 +4956,7 @@ int mdp_core_clk_rate_table[] = {
 static struct msm_panel_common_pdata mdp_pdata = {
 	.hw_revision_addr = 0xac001270,
 	.gpio = 30,
-	.mdp_core_clk_rate = 122880000,
+	.mdp_core_clk_rate = 192000000,
 	.mdp_core_clk_table = mdp_core_clk_rate_table,
 	.num_mdp_clk = ARRAY_SIZE(mdp_core_clk_rate_table),
 	.mdp_rev = MDP_REV_40,
@@ -5458,6 +5459,21 @@ static struct platform_device msm_bt_power_device = {
 //sc47.yun .id     = -1
 };
 
+static unsigned bt_config_default[] = {
+    GPIO_CFG(GPIO_BT_WAKE,       0, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),    /* WAKE */
+    GPIO_CFG(GPIO_BT_UART_RTS,   1, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),    /* RFR */
+    GPIO_CFG(GPIO_BT_UART_CTS,   1, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),    /* CTS */
+    GPIO_CFG(GPIO_BT_UART_RXD,   1, GPIO_CFG_INPUT,  GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),    /* Rx */
+    GPIO_CFG(GPIO_BT_UART_TXD,   1, GPIO_CFG_INPUT, GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),    /* Tx */
+    GPIO_CFG(GPIO_BT_PCM_DOUT,   1, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),    /* PCM_DOUT */
+    GPIO_CFG(GPIO_BT_PCM_DIN,    1, GPIO_CFG_INPUT,  GPIO_CFG_NO_PULL, GPIO_CFG_2MA),    /* PCM_DIN */
+    GPIO_CFG(GPIO_BT_PCM_SYNC,   1, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),    /* PCM_SYNC */
+    GPIO_CFG(GPIO_BT_PCM_CLK,    1, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),    /* PCM_CLK */
+    GPIO_CFG(GPIO_BT_HOST_WAKE,  0, GPIO_CFG_INPUT,  GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),    /* HOST_WAKE */    
+    GPIO_CFG(GPIO_BT_WLAN_REG_ON,0, GPIO_CFG_OUTPUT,  GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),    /* BT_WLAN_REG_ON */
+    GPIO_CFG(GPIO_BT_RESET,      0, GPIO_CFG_OUTPUT,  GPIO_CFG_PULL_DOWN, GPIO_CFG_2MA),    /* BT_RESET */
+};
+
 static unsigned bt_config_power_on[] = {
     GPIO_CFG(GPIO_BT_WAKE,     0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),    /* WAKE */
     GPIO_CFG(GPIO_BT_UART_RTS, 1, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),    /* RFR */
@@ -5535,7 +5551,7 @@ static int bluetooth_gpio_init(void)
 {
     pr_info("bluetooth_gpio_init on system_rev:%d\n", system_rev);
 
-    config_gpio_table(bt_config_power_on, ARRAY_SIZE(bt_config_power_on));
+    config_gpio_table(bt_config_default, ARRAY_SIZE(bt_config_default));
     return 0;
 }
 //sc47.yun
@@ -7784,7 +7800,8 @@ static void __init msm7x30_init(void)
 #endif
 
 	bt_power_init();
-
+	bluetooth_gpio_init();
+   
 #ifdef CONFIG_I2C_SSBI
 	msm_device_ssbi6.dev.platform_data = &msm_i2c_ssbi6_pdata;
 	msm_device_ssbi7.dev.platform_data = &msm_i2c_ssbi7_pdata;

@@ -412,7 +412,7 @@ static int __init snddev_ecodec_init(void)
 	if (IS_ERR(ecodec_drv->lpa_core_clk))
 		goto error_lpa_core_clk;
 
-      printk("[HSS] clk = %d\n", clk_get_rate(ecodec_drv->ecodec_clk) );
+   //   printk("[HSS] clk = %d\n", clk_get_rate(ecodec_drv->ecodec_clk) );
 
 	mutex_init(&ecodec_drv->dev_lock);
 	ecodec_drv->rx_active = 0;

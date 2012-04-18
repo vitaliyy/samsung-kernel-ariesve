@@ -30,15 +30,9 @@
 #include <mach/qdsp5v2/snddev_mi2s.h>
 #include <mach/qdsp5v2/mi2s.h>
 #include <mach/qdsp5v2/audio_acdb_def.h>
-#ifdef CONFIG_MACH_ARIESVE
+
 #include <mach/qdsp5v2/marimba_profile_ariesve.h>
-#elif CONFIG_MACH_ANCORA
-#include <mach/qdsp5v2/marimba_profile_ancora.h>
-#elif CONFIG_MACH_GODART
-#include <mach/qdsp5v2/marimba_profile_godart.h>
-#else
-#include <mach/qdsp5v2/marimba_profile.h>
-#endif
+
 
 #define SAMSUNG_AUDIO_PATH 1
 
@@ -87,10 +81,10 @@ static struct snddev_icodec_data snddev_iearpiece_data = {
 	.default_sample_rate = 48000,
 	.pamp_on = NULL,
 	.pamp_off = NULL,
-	.max_voice_rx_vol[VOC_NB_INDEX] = -200,
-	.min_voice_rx_vol[VOC_NB_INDEX] = -1700,
-	.max_voice_rx_vol[VOC_WB_INDEX] = -200,
-	.min_voice_rx_vol[VOC_WB_INDEX] = -1700
+	.max_voice_rx_vol[VOC_NB_INDEX] = 1500,//-200
+	.min_voice_rx_vol[VOC_NB_INDEX] = -100, //-1700
+	.max_voice_rx_vol[VOC_WB_INDEX] = 1500, //-200
+	.min_voice_rx_vol[VOC_WB_INDEX] = -300 //-1700
 };
 
 static struct platform_device msm_iearpiece_device = {
@@ -185,10 +179,10 @@ static struct snddev_icodec_data snddev_ihs_stereo_rx_data = {
 	.default_sample_rate = 48000,
 	.pamp_on = msm_snddev_poweramp_on_headset,
 	.pamp_off = msm_snddev_poweramp_off_headset,
-	.max_voice_rx_vol[VOC_NB_INDEX] = -700,
-	.min_voice_rx_vol[VOC_NB_INDEX] = -2200,
-	.max_voice_rx_vol[VOC_WB_INDEX] = -900,
-	.min_voice_rx_vol[VOC_WB_INDEX] = -2400
+	.max_voice_rx_vol[VOC_NB_INDEX] = 700, //-700
+	.min_voice_rx_vol[VOC_NB_INDEX] = -1500,
+	.max_voice_rx_vol[VOC_WB_INDEX] = 900, //-900
+	.min_voice_rx_vol[VOC_WB_INDEX] = -1700
 };
 
 static struct platform_device msm_ihs_stereo_rx_device = {
@@ -300,10 +294,10 @@ static struct snddev_icodec_data snddev_ihs_ffa_stereo_rx_data = {
 	.default_sample_rate = 48000,
 	.voltage_on = msm_snddev_hsed_voltage_on,
 	.voltage_off = msm_snddev_hsed_voltage_off,
-	.max_voice_rx_vol[VOC_NB_INDEX] = -700,
-	.min_voice_rx_vol[VOC_NB_INDEX] = -2200,
-	.max_voice_rx_vol[VOC_WB_INDEX] = -900,
-	.min_voice_rx_vol[VOC_WB_INDEX] = -2400,
+	.max_voice_rx_vol[VOC_NB_INDEX] = 700, //-700
+	.min_voice_rx_vol[VOC_NB_INDEX] = -1500,
+	.max_voice_rx_vol[VOC_WB_INDEX] = 900, //-900
+	.min_voice_rx_vol[VOC_WB_INDEX] = -1500,
 };
 
 static struct platform_device msm_ihs_ffa_stereo_rx_device = {
@@ -340,9 +334,9 @@ static struct snddev_icodec_data snddev_ihs_ffa_mono_rx_data = {
 	.default_sample_rate = 48000,
 	.pamp_on = msm_snddev_hsed_voltage_on,
 	.pamp_off = msm_snddev_hsed_voltage_off,
-	.max_voice_rx_vol[VOC_NB_INDEX] = -700,
+	.max_voice_rx_vol[VOC_NB_INDEX] = 700, //-700
 	.min_voice_rx_vol[VOC_NB_INDEX] = -2200,
-	.max_voice_rx_vol[VOC_WB_INDEX] = -900,
+	.max_voice_rx_vol[VOC_WB_INDEX] = 900, //-900
 	.min_voice_rx_vol[VOC_WB_INDEX] = -2400,
 };
 
@@ -476,9 +470,9 @@ static struct snddev_icodec_data snddev_ispeaker_rx_data = {
 	.default_sample_rate = 48000,
 	.pamp_on = &msm_snddev_poweramp_on_speaker,
 	.pamp_off = &msm_snddev_poweramp_off_speaker,
-	.max_voice_rx_vol[VOC_NB_INDEX] = 1000,
+	.max_voice_rx_vol[VOC_NB_INDEX] = 1500, //1000
 	.min_voice_rx_vol[VOC_NB_INDEX] = -500,
-	.max_voice_rx_vol[VOC_WB_INDEX] = 1000,
+	.max_voice_rx_vol[VOC_WB_INDEX] = 1500, //1000
 	.min_voice_rx_vol[VOC_WB_INDEX] = -500,
 };
 
@@ -610,9 +604,9 @@ static struct snddev_ecodec_data snddev_bt_sco_earpiece_data = {
 	.conf_pcm_ctl_val = BT_SCO_PCM_CTL_VAL,
 	.conf_aux_codec_intf = BT_SCO_AUX_CODEC_INTF,
 	.conf_data_format_padding_val = BT_SCO_DATA_FORMAT_PADDING,
-	.max_voice_rx_vol[VOC_NB_INDEX] = 400,
+	.max_voice_rx_vol[VOC_NB_INDEX] = 600,
 	.min_voice_rx_vol[VOC_NB_INDEX] = -1100,
-	.max_voice_rx_vol[VOC_WB_INDEX] = 400,
+	.max_voice_rx_vol[VOC_WB_INDEX] = 600,
 	.min_voice_rx_vol[VOC_WB_INDEX] = -1100,
 };
 
@@ -1063,10 +1057,10 @@ static struct snddev_icodec_data snddev_iearpiece_ffa_data = {
 	.default_sample_rate = 48000,
 	.pamp_on = NULL,
 	.pamp_off = NULL,
-	.max_voice_rx_vol[VOC_NB_INDEX] = -700,
-	.min_voice_rx_vol[VOC_NB_INDEX] = -2200,
-	.max_voice_rx_vol[VOC_WB_INDEX] = -1400,
-	.min_voice_rx_vol[VOC_WB_INDEX] = -2900,
+	.max_voice_rx_vol[VOC_NB_INDEX] = 1500, //-700 1000
+	.min_voice_rx_vol[VOC_NB_INDEX] = -300, //-2200
+	.max_voice_rx_vol[VOC_WB_INDEX] = 1500, //-1400 1000
+	.min_voice_rx_vol[VOC_WB_INDEX] = -300, //-2900
 };
 
 static struct platform_device msm_iearpiece_ffa_device = {
@@ -1166,10 +1160,10 @@ static struct snddev_icodec_data snddev_ihs_stereo_speaker_stereo_rx_data = {
 	.pamp_off = msm_snddev_poweramp_off_together,
 	.voltage_on = msm_snddev_hsed_voltage_on,
 	.voltage_off = msm_snddev_hsed_voltage_off,
-	.max_voice_rx_vol[VOC_NB_INDEX] = -500,
-	.min_voice_rx_vol[VOC_NB_INDEX] = -2000,
-	.max_voice_rx_vol[VOC_WB_INDEX] = -500,
-	.min_voice_rx_vol[VOC_WB_INDEX] = -2000,
+	.max_voice_rx_vol[VOC_NB_INDEX] = 1000, //-500
+ 	.min_voice_rx_vol[VOC_NB_INDEX] = -1000,
+	.max_voice_rx_vol[VOC_WB_INDEX] = 1000, //-500
+	.min_voice_rx_vol[VOC_WB_INDEX] = -1000,
 };
 
 static struct platform_device msm_ihs_stereo_speaker_stereo_rx_device = {
@@ -1247,10 +1241,10 @@ static struct snddev_icodec_data snddev_fluid_iearpiece_rx_data = {
 	.default_sample_rate = 48000,
 	.pamp_on = &msm_snddev_poweramp_on_speaker,
 	.pamp_off = &msm_snddev_poweramp_off_speaker,
-	.max_voice_rx_vol[VOC_NB_INDEX] = -500,
-	.min_voice_rx_vol[VOC_NB_INDEX] = -1000,
-	.max_voice_rx_vol[VOC_WB_INDEX] = -500,
-	.min_voice_rx_vol[VOC_WB_INDEX] = -1000,
+	.max_voice_rx_vol[VOC_NB_INDEX] = 1400, //600
+	.min_voice_rx_vol[VOC_NB_INDEX] = -100,
+	.max_voice_rx_vol[VOC_WB_INDEX] = 1400, //600
+	.min_voice_rx_vol[VOC_WB_INDEX] = -100,
 };
 
 static struct platform_device msm_fluid_iearpeice_rx_device = {
@@ -1999,10 +1993,10 @@ static struct snddev_icodec_data handset_rx_data = {
 	.default_sample_rate = 48000,
 	.pamp_on = NULL,
 	.pamp_off = NULL,
-	.max_voice_rx_vol[VOC_NB_INDEX] = -200,
+	.max_voice_rx_vol[VOC_NB_INDEX] = -700,
 	.min_voice_rx_vol[VOC_NB_INDEX] = -1700,
-	.max_voice_rx_vol[VOC_WB_INDEX] = -200,
-	.min_voice_rx_vol[VOC_WB_INDEX] = -1700
+	.max_voice_rx_vol[VOC_WB_INDEX] = -700,
+	.min_voice_rx_vol[VOC_WB_INDEX] = -1300
 };
 static enum hsed_controller handset_tx_pmctl_id[] = {PM_HSED_CONTROLLER_0};
 static struct snddev_icodec_data handset_tx_data = {
@@ -2849,95 +2843,6 @@ static struct platform_device *snd_devices_ariesve[] __initdata = {
 };
 #endif
 
-#ifdef CONFIG_MACH_ANCORA
-static struct platform_device *snd_devices_ancora[] __initdata = {
-	&device_handset_rx,
-	&device_handset_tx,
-	&device_speaker_rx,
-	&device_speaker_tx,
-	&device_headset_rx,
-	&device_headset_tx,
-	&device_bt_sco_rx,
-	&device_bt_sco_tx,
-	&device_bt_sco_nrec_rx,
-	&device_bt_sco_nrec_tx,
-	&device_hdmi_stereo_rx,
-	&device_aux_dock_rx,
-	&device_speaker_headset_rx,
-	&device_speaker_dock_rx,
-	&device_speaker_hdmi_rx,
-	&device_handset_call_rx,
-	&device_handset_call_tx,
-	&device_speaker_call_rx,
-	&device_speaker_call_tx,
-	&device_headset_call_rx,
-	&device_headset_call_tx,
-	&device_bt_sco_call_rx,
-	&device_bt_sco_call_tx,
-	&device_bt_sco_nrec_call_rx,
-	&device_bt_sco_nrec_call_tx,
-	&device_tty_headset_mono_call_rx,
-	&device_tty_headset_mono_call_tx,
-	&device_dualmic_handset_call_tx,
-	&device_handset_fmradio_rx,
-	&device_headset_fmradio_rx,
-	&device_headset_fmradio_tx,
-	&device_speaker_fmradio_rx,
-	&device_speaker_voice_dialer_tx,
-	&device_headset_voice_dialer_tx,
-	&device_bt_sco_voice_dialer_tx,
-	&device_bt_sco_nrec_voice_dialer_tx,
-	&device_speaker_voice_search_tx,
-	&device_headset_voice_search_tx,
-	&device_headset_fmradio_only_rx,
-	&device_speaker_fmradio_only_rx,	
-};
-#endif
-
-#ifdef CONFIG_MACH_GODART
-static struct platform_device *snd_devices_godart[] __initdata = {
-	&device_handset_rx,
-	&device_handset_tx,
-	&device_speaker_rx,
-	&device_speaker_tx,
-	&device_headset_rx,
-	&device_headset_tx,
-	&device_bt_sco_rx,
-	&device_bt_sco_tx,
-	&device_bt_sco_nrec_rx,
-	&device_bt_sco_nrec_tx,
-	&device_hdmi_stereo_rx,
-	&device_aux_dock_rx,
-	&device_speaker_headset_rx,
-	&device_speaker_dock_rx,
-	&device_speaker_hdmi_rx,
-	&device_handset_call_rx,
-	&device_handset_call_tx,
-	&device_speaker_call_rx,
-	&device_speaker_call_tx,
-	&device_headset_call_rx,
-	&device_headset_call_tx,
-	&device_bt_sco_call_rx,
-	&device_bt_sco_call_tx,
-	&device_bt_sco_nrec_call_rx,
-	&device_bt_sco_nrec_call_tx,
-	&device_tty_headset_mono_call_rx,
-	&device_tty_headset_mono_call_tx,
-	&device_dualmic_handset_call_tx,
-	&device_handset_fmradio_rx,
-	&device_headset_fmradio_rx,
-	&device_headset_fmradio_tx,
-	&device_speaker_fmradio_rx,
-	&device_speaker_voice_dialer_tx,
-	&device_headset_voice_dialer_tx,
-	&device_bt_sco_voice_dialer_tx,
-	&device_bt_sco_nrec_voice_dialer_tx,
-	&device_speaker_voice_search_tx,
-	&device_headset_voice_search_tx,
-	&device_headset_fmradio_only_rx,
-	&device_speaker_fmradio_only_rx,	
-};
-#endif
 static struct platform_device *snd_devices_fluid[] __initdata = {
 	&msm_ihs_stereo_rx_device,
 	&msm_ihs_mono_rx_device,
@@ -3066,12 +2971,6 @@ void __ref msm_snddev_init(void)
 #ifdef CONFIG_MACH_ARIESVE
    		platform_add_devices(snd_devices_ariesve,
 		ARRAY_SIZE(snd_devices_ariesve));
-#elif CONFIG_MACH_ANCORA
-   		platform_add_devices(snd_devices_ancora,
-		ARRAY_SIZE(snd_devices_ancora));
-#elif CONFIG_MACH_GODART
-   		platform_add_devices(snd_devices_godart,
-		ARRAY_SIZE(snd_devices_godart));
 #endif
 
 #else      
