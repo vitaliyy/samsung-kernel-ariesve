@@ -5,3 +5,4 @@
 obj-$(CONFIG_VIBETONZ) += vibrator.o
 
 vibrator-objs +=tspdrv.o 
+
