@@ -197,6 +197,9 @@ static void acpuclk_set_src(const struct clkctl_acpu_speed *s)
 
 	/* Program clock source selection. */
 	writel(reg_clksel, SCSS_CLK_SEL_ADDR);
+
+	/* Make sure switch to new source is complete. */
+	dsb();
 }
 
 int acpuclk_set_rate(int cpu, unsigned long rate, enum setrate_reason reason)
@@ -317,13 +320,6 @@ uint32_t acpuclk_get_switch_time(void)
 {
 	return drv_state.acpu_switch_time_us;
 }
-
-unsigned long clk_get_max_axi_khz(void)
-{
-	return MAX_AXI_KHZ;
-}
-EXPORT_SYMBOL(clk_get_max_axi_khz);
-
 
 /*----------------------------------------------------------------------------
  * Clock driver initialization

@@ -143,9 +143,13 @@ EXPORT_SYMBOL(sec_class);
 struct device *switch_dev;
 EXPORT_SYMBOL(switch_dev);
 
-#define MSM_PMEM_SF_SIZE	0x1E00000	// MM team, QC request
-#define MSM_FB_SIZE			0xA46000	// ARGB8888 double duffrting
-#define MSM_PMEM_ADSP_SIZE      0x1CD0000//1800000//+4D0000
+#define MSM_PMEM_SF_SIZE		0x1700000
+#ifdef CONFIG_FB_MSM_TRIPLE_BUFFER
+#define MSM_FB_SIZE			0x780000
+#else
+#define MSM_FB_SIZE			0x500000
+#endif
+#define MSM_PMEM_ADSP_SIZE		0x1E00000
 #define MSM_FLUID_PMEM_ADSP_SIZE	0x2800000
 #define PMEM_KERNEL_EBI1_SIZE		0x600000
 #define MSM_PMEM_AUDIO_SIZE		0x200000
@@ -4279,7 +4283,7 @@ static struct msm_otg_platform_data msm_otg_pdata = {
 	.core_clk		 = 1,
 	.pemp_level		 = PRE_EMPHASIS_WITH_20_PERCENT,
 	.cdr_autoreset		 = CDR_AUTO_RESET_DISABLE,
-	.drv_ampl		 = HS_DRV_AMPLITUDE_DEFAULT,
+	.drv_ampl		 = HS_DRV_AMPLITUDE_75_PERCENT,
 	.se1_gating		 = SE1_GATING_DISABLE,
 	.chg_vbus_draw		 = hsusb_chg_vbus_draw,
 	.chg_connected		 = hsusb_chg_connected,

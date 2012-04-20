@@ -116,6 +116,7 @@ struct voice_device {
 //#if 1 // min_max_vol from AP to CP
 	uint32_t rx_volume_min;
 	uint32_t rx_volume_max;
+	uint32_t rx_volume_percentage;
 //#endif
 };
 

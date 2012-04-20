@@ -192,7 +192,6 @@ static void msm_pm_add_stat(enum msm_pm_time_stats_id id, int64_t t)
 }
 
 static uint32_t msm_pm_sleep_limit = SLEEP_LIMIT_NONE;
-static DECLARE_BITMAP(msm_pm_clocks_no_tcxo_shutdown, MAX_NR_CLKS);
 #endif
 
 static int
@@ -315,17 +314,18 @@ static int msm_sleep(int sleep_mode, uint32_t sleep_delay,
 		goto enter_failed;
 
 	if (enter_state) {
-		writel(0x1f, A11S_CLK_SLEEP_EN);
-		writel(1, A11S_PWRDOWN);
+		__raw_writel(0x1f, A11S_CLK_SLEEP_EN);
+		__raw_writel(1, A11S_PWRDOWN);
 
-		writel(0, A11S_STANDBY_CTL);
-		writel(0, A11RAMBACKBIAS);
+		__raw_writel(0, A11S_STANDBY_CTL);
+		__raw_writel(0, A11RAMBACKBIAS);
 
 		if (msm_pm_debug_mask & MSM_PM_DEBUG_STATE)
 			printk(KERN_INFO "msm_sleep(): enter "
 			       "A11S_CLK_SLEEP_EN %x, A11S_PWRDOWN %x, "
-			       "smsm_get_state %x\n", readl(A11S_CLK_SLEEP_EN),
-			       readl(A11S_PWRDOWN),
+			       "smsm_get_state %x\n",
+			       __raw_readl(A11S_CLK_SLEEP_EN),
+			       __raw_readl(A11S_PWRDOWN),
 			       smsm_get_state(SMSM_MODEM_STATE));
 	}
 
@@ -386,7 +386,8 @@ static int msm_sleep(int sleep_mode, uint32_t sleep_delay,
 	if (msm_pm_debug_mask & MSM_PM_DEBUG_STATE)
 		printk(KERN_INFO "msm_sleep(): exit A11S_CLK_SLEEP_EN %x, "
 		       "A11S_PWRDOWN %x, smsm_get_state %x\n",
-		       readl(A11S_CLK_SLEEP_EN), readl(A11S_PWRDOWN),
+		       __raw_readl(A11S_CLK_SLEEP_EN),
+		       __raw_readl(A11S_PWRDOWN),
 		       smsm_get_state(SMSM_MODEM_STATE));
 ramp_down_failed:
 	msm_irq_exit_sleep1(msm_pm_sma.int_info->aArm_en_mask,
@@ -394,8 +395,8 @@ ramp_down_failed:
 		msm_pm_sma.int_info->aArm_interrupts_pending);
 enter_failed:
 	if (enter_state) {
-		writel(0x00, A11S_CLK_SLEEP_EN);
-		writel(0, A11S_PWRDOWN);
+		__raw_writel(0x00, A11S_CLK_SLEEP_EN);
+		__raw_writel(0, A11S_PWRDOWN);
 		smsm_change_state(SMSM_APPS_STATE, enter_state, exit_state);
 		if (msm_pm_wait_state(exit_wait_set, exit_wait_clear, 0, 0)) {
 			printk(KERN_EMERG "msm_sleep(): power collapse exit "
@@ -405,8 +406,9 @@ enter_failed:
 		if (msm_pm_debug_mask & MSM_PM_DEBUG_STATE)
 			printk(KERN_INFO "msm_sleep(): sleep exit "
 			       "A11S_CLK_SLEEP_EN %x, A11S_PWRDOWN %x, "
-			       "smsm_get_state %x\n", readl(A11S_CLK_SLEEP_EN),
-			       readl(A11S_PWRDOWN),
+			       "smsm_get_state %x\n",
+			       __raw_readl(A11S_CLK_SLEEP_EN),
+			       __raw_readl(A11S_PWRDOWN),
 			       smsm_get_state(SMSM_MODEM_STATE));
 		if (msm_pm_debug_mask & MSM_PM_DEBUG_SMSM_STATE)
 			smsm_print_sleep_info(*msm_pm_sma.sleep_delay,
@@ -423,8 +425,9 @@ enter_failed:
 		if (msm_pm_debug_mask & MSM_PM_DEBUG_STATE)
 			printk(KERN_INFO "msm_sleep(): sleep exit "
 			       "A11S_CLK_SLEEP_EN %x, A11S_PWRDOWN %x, "
-			       "smsm_get_state %x\n", readl(A11S_CLK_SLEEP_EN),
-			       readl(A11S_PWRDOWN),
+			       "smsm_get_state %x\n",
+			       __raw_readl(A11S_CLK_SLEEP_EN),
+			       __raw_readl(A11S_PWRDOWN),
 			       smsm_get_state(SMSM_MODEM_STATE));
 	}
 	msm_irq_exit_sleep3(msm_pm_sma.int_info->aArm_en_mask,
@@ -465,7 +468,6 @@ void arch_idle(void)
 	int low_power = 0;
 	struct msm_pm_platform_data *mode;
 #ifdef CONFIG_MSM_IDLE_STATS
-	DECLARE_BITMAP(clk_ids, MAX_NR_CLKS);
 	int64_t t1;
 	static int64_t t2;
 	int exit_stat;
@@ -550,17 +552,6 @@ void arch_idle(void)
 			printk(KERN_ERR "msm_sleep(): clk_set_rate %ld "
 			       "failed\n", saved_rate);
 	} else {
-#ifdef CONFIG_MSM_IDLE_STATS
-		ret = msm_clock_require_tcxo(clk_ids, MAX_NR_CLKS);
-#elif defined(CONFIG_CLOCK_BASED_SLEEP_LIMIT)
-		ret = msm_clock_require_tcxo(NULL, 0);
-#endif
-
-#ifdef CONFIG_CLOCK_BASED_SLEEP_LIMIT
-		if (ret)
-			sleep_limit = SLEEP_LIMIT_NO_TCXO_SHUTDOWN;
-#endif
-
 		low_power = 1;
 		do_div(sleep_time, NSEC_PER_SEC / 32768);
 		if (sleep_time > 0x6DDD000) {
@@ -579,8 +570,6 @@ void arch_idle(void)
 			else {
 				exit_stat = MSM_PM_STAT_IDLE_POWER_COLLAPSE;
 				msm_pm_sleep_limit = sleep_limit;
-				bitmap_copy(msm_pm_clocks_no_tcxo_shutdown,
-					clk_ids, MAX_NR_CLKS);
 			}
 			break;
 		case MSM_PM_SLEEP_MODE_APPS_SLEEP:
@@ -604,23 +593,13 @@ abort_idle:
 
 static int msm_pm_enter(suspend_state_t state)
 {
-	uint32_t sleep_limit;
+	uint32_t sleep_limit = SLEEP_LIMIT_NONE;
 	int ret;
 #ifdef CONFIG_MSM_IDLE_STATS
-	DECLARE_BITMAP(clk_ids, MAX_NR_CLKS);
 	int64_t period = 0;
 	int64_t time = 0;
 
 	time = msm_timer_get_sclk_time(&period);
-	ret = msm_clock_require_tcxo(clk_ids, MAX_NR_CLKS);
-#elif defined(CONFIG_CLOCK_BASED_SLEEP_LIMIT)
-	ret = msm_clock_require_tcxo(NULL, 0);
-#endif /* CONFIG_MSM_IDLE_STATS */
-
-#ifdef CONFIG_CLOCK_BASED_SLEEP_LIMIT
-	sleep_limit = ret ? SLEEP_LIMIT_NO_TCXO_SHUTDOWN : SLEEP_LIMIT_NONE;
-#else
-	sleep_limit = SLEEP_LIMIT_NONE;
 #endif
 
 	clock_debug_print_enabled();
@@ -647,8 +626,6 @@ static int msm_pm_enter(suspend_state_t state)
 		else {
 			id = MSM_PM_STAT_SUSPEND;
 			msm_pm_sleep_limit = sleep_limit;
-			bitmap_copy(msm_pm_clocks_no_tcxo_shutdown, clk_ids,
-				MAX_NR_CLKS);
 		}
 
 		if (time != 0) {
@@ -752,7 +729,6 @@ static int msm_pm_read_proc(
 {
 	int i;
 	char *p = page;
-	char clk_name[16];
 
 	if (count < 1024) {
 		*start = (char *) 0;
@@ -761,14 +737,6 @@ static int msm_pm_read_proc(
 	}
 
 	if (!off) {
-		SNPRINTF(p, count, "Clocks against last TCXO shutdown:\n");
-		for_each_set_bit(i, msm_pm_clocks_no_tcxo_shutdown,
-				MAX_NR_CLKS) {
-			clk_name[0] = '\0';
-			msm_clock_get_name(i, clk_name, sizeof(clk_name));
-			SNPRINTF(p, count, "  %s (id=%d)\n", clk_name, i);
-		}
-
 		SNPRINTF(p, count, "Last power collapse voted ");
 		if (msm_pm_sleep_limit == SLEEP_LIMIT_NONE)
 			SNPRINTF(p, count, "for TCXO shutdown\n\n");
@@ -859,7 +827,6 @@ static int msm_pm_write_proc(struct file *file, const char __user *buffer,
 	}
 
 	msm_pm_sleep_limit = SLEEP_LIMIT_NONE;
-	bitmap_zero(msm_pm_clocks_no_tcxo_shutdown, MAX_NR_CLKS);
 	local_irq_restore(flags);
 
 	return count;
